@@ -75,6 +75,7 @@ class MenuView(arcade.View):
         super().__init__()
         self.ui_manager = UIManager()
 
+
     def on_show_view(self):
         self.setup()
         arcade.set_background_color(arcade.color.AMAZON)
@@ -142,22 +143,37 @@ class GameView(arcade.View):
     def __init__(self):
         super().__init__()
 
+        # Variables that will hold sprite lists
+        self.player_list = None
+        self.coin_list = None
+
+        # Set up the player info
+        self.player_sprite = None
+        self.score = 0
         # Create variables here
 
     def setup(self):
         """ This should set up your game and get it ready to play """
         # Replace 'pass' with the code to set up your game
-        pass
+        self.player_list = arcade.SpriteList()
+        self.score = 0
+        self.player_sprite = arcade.Sprite("./resources/deck/2c.png",
+                                           1)
+        self.player_sprite.center_x = 50
+        self.player_sprite.center_y = 50
+        self.player_list.append(self.player_sprite)
 
     def on_show(self):
         """ Called when switching to this view"""
-        arcade.set_background_color(arcade.color.ORANGE_PEEL)
+        arcade.set_background_color(arcade.color.AMAZON)
 
     def on_draw(self):
         """ Draw everything for the game. """
         arcade.start_render()
         arcade.draw_text("Game - press SPACE to advance", ANCHO/2, ALTO/2,
                          arcade.color.BLACK, font_size=30, anchor_x="center")
+
+        self.player_list.draw()
 
     def on_key_press(self, key, _modifiers):
         """ Handle keypresses. In this case, we'll just count a 'space' as
@@ -176,8 +192,10 @@ class GameOverView(arcade.View):
     def on_draw(self):
         """ Draw the game over view """
         arcade.start_render()
-        arcade.draw_text("Game Over - press ESCAPE to advance", ANCHO/2, ALTO/2,
+        arcade.draw_text("Juego terminado", ANCHO/2, ALTO/2,
                          arcade.color.WHITE, 30, anchor_x="center")
+        arcade.draw_text("Presione ESCAPE para ir al menu principal", ANCHO / 2, ALTO / 2 - 30,
+                         arcade.color.WHITE, 20, anchor_x="center")
 
     def on_key_press(self, key, _modifiers):
         """ If user hits escape, go back to the main menu view """
