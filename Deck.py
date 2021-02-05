@@ -15,15 +15,18 @@ class DeckClass:
     def __str__(self):
 
         return str([item for item in self.cards])
-        # return str(self.cards)
+        #return str(self.cards)
 
     def shuffle(self):
         random.shuffle(self.cards)
 
-    def draw(self, how_many=1):
+    def draw_cards(self, how_many=1):
 
         return [(self.cards.pop()) for i in range(how_many)]
 
     def put(self, cards):
         for card in cards:
             self.cards.insert(0, card)
+
+
+
