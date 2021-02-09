@@ -17,10 +17,10 @@ class BotonJuego(arcade.gui.UIFlatButton):
     def on_click(self):
         if self.text == 'Cambiar':
             self.dispatch_event('cambiar_cartas')
-        elif self.text == 'Entrar':
-            self.dispatch_event('entrar')
-        elif self.text == 'Retirar':
-            self.dispatch_event('retirar')
+        elif self.text == 'Retirarse':
+            self.dispatch_event('retirarse')
+        elif self.text == 'Repartir':
+            self.dispatch_event('repartir')
 
 
 class BotonNroBots(arcade.gui.UIFlatButton):
@@ -133,9 +133,10 @@ class GameView(arcade.View):
         self.player_score = None
 
         # Create variables here
-        self.deck = DeckClass()
+        self.game_state = None
+        self.ganador = ""
+        self.deck = None
         self.cartas_bots = []
-        self.bot_score = [] * BOTS
 
     def on_hide_view(self):
         self.ui_manager.unregister_handlers()
@@ -144,122 +145,165 @@ class GameView(arcade.View):
         """ This should set up your game and get it ready to play """
         # Replace 'pass' with the code to set up your game
 
+        self.deck = DeckClass()
         self.deck.shuffle()
         self.ui_manager.purge_ui_elements()
-
+        """Los estados van a ser:
+        0 - """
+        self.game_state = {"descripcion": "Seleccione desde 0 hasta 5 cartas y cambielas o retirese de la ronda","estado":1}
         # Jugador
 
         self.player_list = arcade.SpriteList()
         self.player_score = 10
         self.cartas_jugador = self.deck.draw_cards(5)
 
-        for carta in self.cartas_jugador:
-            carta.revealed = True
-
         for i in range(5):
             self.player_sprite = arcade.Sprite('./resources/deck/%s.png' % self.cartas_jugador[i].name, 1)
-            self.player_sprite.center_x = 50 + i * 80
-            self.player_sprite.center_y = 100
+            self.player_sprite.center_x = ANCHO/24 + i * 80
+            self.player_sprite.center_y = ALTO/9
             self.player_list.append(self.player_sprite)
 
         # Botones
 
         boton_cambio = BotonJuego(
             'Cambiar',
-            center_x=1 * self.window.width // 6,
+            center_x=2 * self.window.width // 6,
             center_y=self.window.height // 4,
             width=160
         )
 
         self.ui_manager.add_ui_element(boton_cambio)
 
-        boton_entrar = BotonJuego(
-            'Entrar',
-            center_x=2 * self.window.width // 6,
-            center_y=self.window.height // 4,
-            width=160
-        )
-
-        self.ui_manager.add_ui_element(boton_entrar)
-
-        boton_retirar = BotonJuego(
-            'Retirar',
+        boton_retirarse = BotonJuego(
+            'Retirarse',
             center_x=3 * self.window.width // 6,
             center_y=self.window.height // 4,
             width=160
         )
 
-        self.ui_manager.add_ui_element(boton_retirar)
+        self.ui_manager.add_ui_element(boton_retirarse)
+
+        boton_repartir = BotonJuego(
+            'Repartir',
+            center_x=4 * self.window.width // 6,
+            center_y=self.window.height // 4,
+            width=160
+        )
+
+        self.ui_manager.add_ui_element(boton_repartir)
+
+        BotonJuego.register_event_type('cambiar_cartas')
+        BotonJuego.register_event_type('retirarse')
+        BotonJuego.register_event_type('repartir')
 
         # Bots
-        self.bot_score = [10] * BOTS
         for i in range(BOTS):
             self.bot_list.append(arcade.SpriteList())
             self.cartas_bots.append(self.deck.draw_cards(5))
             for j in range(5):
                 self.bot_sprite = arcade.Sprite('./resources/card_back.png', 1)
-                self.bot_sprite.center_x = 50 + j * 10 + i * 200
-                self.bot_sprite.center_y = 800
+                self.bot_sprite.center_x = ANCHO/24 + j * 10 + i * 200
+                self.bot_sprite.center_y = ALTO/1.125
                 self.bot_list[i].append(self.bot_sprite)
-
-        BotonJuego.register_event_type('cambiar_cartas')
-        BotonJuego.register_event_type('entrar')
-        BotonJuego.register_event_type('retirar')
 
         @boton_cambio.event()
         def cambiar_cartas():
 
-            cartas_a_cambiar = []
+            if self.game_state.get("estado") == 1:
+                cartas_a_cambiar = []
 
-            for carta in self.cartas_jugador:
-                if carta.selected:
-                    cartas_a_cambiar.append(carta)
+                for carta in self.cartas_jugador:
+                    if carta.selected:
+                        cartas_a_cambiar.append(carta)
 
-            for carta in cartas_a_cambiar:
-                self.cartas_jugador.remove(carta)
+                for carta in cartas_a_cambiar:
+                    carta.selected = False
+                    self.cartas_jugador.remove(carta)
 
-            self.cartas_jugador.extend(self.deck.draw_cards(len(cartas_a_cambiar)))
-            self.deck.put(cartas_a_cambiar)
+                self.cartas_jugador.extend(self.deck.draw_cards(len(cartas_a_cambiar)))
+                self.deck.put(cartas_a_cambiar)
 
-            for i in range(5):
-                self.player_list[i].texture = arcade.load_texture(
-                    "./resources/deck/%s.png" % self.cartas_jugador[i].name)
-                self.player_list[i].center_y = 100
+                for i in range(5):
+                    self.player_list[i].texture = arcade.load_texture(
+                        "./resources/deck/%s.png" % self.cartas_jugador[i].name)
+                    self.player_list[i].center_y = ALTO/9
 
-            self.player_list.update()
+                self.player_list.update()
+                entrar()
 
-        @boton_entrar.event()
         def entrar():
 
-            cartas_en_juego = self.cartas_bots + [self.cartas_jugador]
-            resultado = poker(cartas_en_juego)
-            if resultado.get("ganador") == len(cartas_en_juego):
-                print("Ganó el jugador con " + resultado.get("jugada"))
-                self.player_score += 2
-            else:
-                print("Ganó el bot " + str(resultado.get("ganador")) + " con " + resultado.get("jugada"))
-                self.player_score -= 2
-                for i in range(BOTS):
-                    if i == resultado.get("ganador")-1:
-                        self.bot_score[i] += 2
-                    else:
-                        if self.bot_score[i] > 0:
-                            self.bot_score[i] -= 2
-            if self.player_score >= 20:
-                game_over_view = GameOverView(True)
-                self.window.show_view(game_over_view)
-            if self.player_score <= 0:
-                game_over_view = GameOverView(False)
-                self.window.show_view(game_over_view)
+            if self.game_state.get("estado") == 1:
+                cartas_en_juego = self.cartas_bots + [self.cartas_jugador]
+                resultado = poker(cartas_en_juego)
+                if resultado.get("ganador") == len(cartas_en_juego):
+                    self.ganador = "Ganó el jugador con " + resultado.get("jugada")
+                    self.player_score += 2
+                else:
+                    self.ganador = "Ganó el bot " + str(resultado.get("ganador")) + " con " + resultado.get("jugada")
+                    self.player_score -= 2
 
-        @boton_retirar.event()
-        def retirar():
-            print(self.player_score)
-            self.player_score -= 1
-            if self.player_score == 0:
-                game_over_view = GameOverView(False)
-                self.window.show_view(game_over_view)
-            print(self.player_score)
+                    # MOSTRAR CARTAS GANADORAS
+                    for i in range(5):
+                        self.bot_list[resultado.get("ganador")-1][i].texture = arcade.load_texture("./resources/deck/%s.png" % self.cartas_bots[resultado.get("ganador")-1][i].name)
+                        self.bot_list[resultado.get("ganador") - 1][i].center_x = ANCHO/2.8 + i * 80
+                        self.bot_list[resultado.get("ganador") - 1][i].center_y = ALTO/2
+                    self.bot_list[resultado.get("ganador") - 1].update()
+
+                self.game_state["descripcion"] = "Presione repartir para continuar"
+                self.game_state["estado"] = 2
+                self.check_score()
+
+        @boton_retirarse.event()
+        def retirarse():
+
+            if self.game_state.get("estado") == 1:
+                self.player_score -= 1
+                resultado = poker(self.cartas_bots)
+                for i in range(5):
+                    self.bot_list[resultado.get("ganador") - 1][i].texture = arcade.load_texture(
+                        "./resources/deck/%s.png" % self.cartas_bots[resultado.get("ganador") - 1][i].name)
+                    self.bot_list[resultado.get("ganador") - 1][i].center_x = ANCHO / 2.8 + i * 80
+                    self.bot_list[resultado.get("ganador") - 1][i].center_y = ALTO / 2
+                self.bot_list[resultado.get("ganador") - 1].update()
+                self.ganador = "Ganó el bot " + str(resultado.get("ganador")) + " con " + resultado.get("jugada")
+                self.game_state["descripcion"] = "Presione repartir para continuar"
+                self.check_score()
+                self.game_state["estado"] = 2
+
+        @boton_repartir.event()
+        def repartir():
+
+            if self.game_state.get("estado") == 2:
+                self.game_state["descripcion"] = "Seleccione desde 0 hasta 5 cartas y cambielas o retirese de la ronda"
+                self.ganador = ""
+                self.game_state["estado"] = 1
+                self.deck = DeckClass()
+                self.deck.shuffle()
+                self.cartas_jugador = self.deck.draw_cards(5)
+                for i in range(5):
+                    self.player_list[i].texture = arcade.load_texture(
+                        "./resources/deck/%s.png" % self.cartas_jugador[i].name)
+                    self.player_list[i].center_y = ALTO/9
+
+                self.player_list.update()
+
+                self.cartas_bots = []
+                for i in range(BOTS):
+                    self.cartas_bots.append(self.deck.draw_cards(5))
+                    for j in range(5):
+                        self.bot_list[i][j].texture = arcade.load_texture("./resources/card_back.png")
+                        self.bot_list[i][j].center_x = ANCHO/24 + j * 10 + i * 200
+                        self.bot_list[i][j].center_y = ALTO/1.125
+                    self.bot_list[i].update()
+
+    def check_score(self):
+        if self.player_score >= 20:
+            game_over_view = GameOverView(True)
+            self.window.show_view(game_over_view)
+        if self.player_score <= 0:
+            game_over_view = GameOverView(False)
+            self.window.show_view(game_over_view)
 
     def on_show(self):
         """ Called when switching to this view"""
@@ -268,21 +312,19 @@ class GameView(arcade.View):
     def on_draw(self):
         """ Draw everything for the game. """
         arcade.start_render()
-        arcade.draw_text("Game - press SPACE to advance", ANCHO / 2, ALTO / 2,
-                         arcade.color.BLACK, font_size=30, anchor_x="center")
-
+        arcade.draw_text(str(self.game_state.get("descripcion")), ANCHO / 2.5, ALTO / 9,
+                         arcade.color.BLACK, font_size=15, anchor_x="left")
+        arcade.draw_text(self.ganador, ANCHO / 2, ALTO / 3,
+                         arcade.color.BLACK, font_size=20, anchor_x="center")
         self.player_list.draw()
-        arcade.draw_text('Puntos: ' + str(self.player_score), 20, 30, arcade.color.WHITE, 14)
+        arcade.draw_text('Puntos: ' + str(self.player_score), ANCHO/60, ALTO/30, arcade.color.WHITE, 14)
         for i in range(BOTS):
             self.bot_list[i].draw()
-            arcade.draw_text('Puntos: ' + str(self.bot_score[i]), 20 + i * 200, 730, arcade.color.WHITE, 14)
-
-
-
+            arcade.draw_text("Bot {}".format(i+1), ANCHO/60 + i * 200, ALTO/1.232, arcade.color.WHITE, 14)
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
 
-        if button == arcade.MOUSE_BUTTON_LEFT:
+        if button == arcade.MOUSE_BUTTON_LEFT and self.game_state.get("estado") == 1:
             if y in range(self.min_y(self.player_list[0].get_adjusted_hit_box()),
                           self.max_y(self.player_list[0].get_adjusted_hit_box())):
                 if x in range(self.min_x(self.player_list[0].get_adjusted_hit_box()),
@@ -370,13 +412,6 @@ class GameView(arcade.View):
                 maxy = punto[1]
 
         return int(maxy)
-
-    def on_key_press(self, key, _modifiers):
-        """ Handle keypresses. In this case, we'll just count a 'space' as
-        game over and advance to the game over view. """
-        if key == arcade.key.SPACE:
-            game_over_view = GameOverView(True)
-            self.window.show_view(game_over_view)
 
 
 class GameOverView(arcade.View):
