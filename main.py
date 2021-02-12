@@ -66,7 +66,7 @@ class MenuView(arcade.View):
                          arcade.color.WHITE, font_size=30, anchor_x="center")
         arcade.draw_text("Por Martin Silva", ANCHO / 2, ALTO / 2 - 30,
                          arcade.color.WHITE, font_size=15, anchor_x="center")
-        arcade.draw_text("Eliga con cuantos bots quiere jugar", ANCHO / 2, ALTO / 2 - 80,
+        arcade.draw_text("Elija con cuantos bots quiere jugar", ANCHO / 2, ALTO / 2 - 80,
                          arcade.color.WHITE, font_size=15, anchor_x="center")
 
     def setup(self):
@@ -237,10 +237,10 @@ class GameView(arcade.View):
                 cartas_en_juego = self.cartas_bots + [self.cartas_jugador]
                 resultado = poker(cartas_en_juego)
                 if resultado.get("ganador") == len(cartas_en_juego):
-                    self.ganador = "Ganó el jugador con " + resultado.get("jugada")
+                    self.ganador = "Gano el jugador con " + resultado.get("jugada")
                     self.player_score += 2
                 else:
-                    self.ganador = "Ganó el bot " + str(resultado.get("ganador")) + " con " + resultado.get("jugada")
+                    self.ganador = "Gano el bot " + str(resultado.get("ganador")) + " con " + resultado.get("jugada")
                     self.player_score -= 2
 
                     # MOSTRAR CARTAS GANADORAS
@@ -266,7 +266,7 @@ class GameView(arcade.View):
                     self.bot_list[resultado.get("ganador") - 1][i].center_x = ANCHO / 2.8 + i * 80
                     self.bot_list[resultado.get("ganador") - 1][i].center_y = ALTO / 2
                 self.bot_list[resultado.get("ganador") - 1].update()
-                self.ganador = "Ganó el bot " + str(resultado.get("ganador")) + " con " + resultado.get("jugada")
+                self.ganador = "Gano el bot " + str(resultado.get("ganador")) + " con " + resultado.get("jugada")
                 self.game_state["descripcion"] = "Presione repartir para continuar"
                 self.check_score()
                 self.game_state["estado"] = 2
