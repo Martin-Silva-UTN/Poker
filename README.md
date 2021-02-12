@@ -17,7 +17,11 @@
 
 6- Desplegar la pestaña "Project" a la izquierda, desplegar la carpeta Poker y hacer doble click en main.py
 
+![asd](https://user-images.githubusercontent.com/63522064/107830371-685fc580-6d6a-11eb-8191-37f3250a786a.png)
+
 7- En la barra verde que aparecerá arriba haga click en "configure python interpreter" y luego en "Add interpreter"
+
+![asd2](https://user-images.githubusercontent.com/63522064/107830557-dd32ff80-6d6a-11eb-815e-6895ae6e8426.png)
 
 8- Dejar seleccionada la opción por defecto (usar el interprete existente en el virtual enviroment) y aceptar
 
