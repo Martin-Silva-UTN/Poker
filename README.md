@@ -15,9 +15,9 @@
 
 5- Poner la URL de este mismo repositorio (https://github.com/Martin-Silva-UTN/Poker) y hacer click en Clone
 
-6- Desplegar la pestaña "Project" a la izquierda y hacer doble click en main.py
+6- Desplegar la pestaña "Project" a la izquierda, desplegar la carpeta Poker y hacer doble click en main.py
 
-7- En la barra verde que aparecerá arriba 
+7- En la barra verde que aparecerá arriba haga click en "configure python interpreter" y luego en "Add interpreter"
 
 8- Dejar seleccionada la opción por defecto (usar el interprete existente en el virtual enviroment) y aceptar
 
