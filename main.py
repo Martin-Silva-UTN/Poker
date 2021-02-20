@@ -430,7 +430,7 @@ class GameView(arcade.View):
 
 
 class GameOverView(arcade.View):
-    """ Vista de la pantalla del juego terminado """
+    """ Vista de la pantalla del juego terminado  """
 
     def __init__(self, victoria: bool):
         super(GameOverView, self).__init__()
