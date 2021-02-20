@@ -24,12 +24,9 @@ class BotonJuego(arcade.gui.UIFlatButton):
 
 
 class BotonNroBots(arcade.gui.UIFlatButton):
-    """
-    To capture a button click, subclass the button and override on_click.
-    """
 
     def on_click(self):
-        """ Called when user lets off button """
+        """ Metodo que se ejecuta al hacer click en un boton """
         global BOTS
         if self.text == '1':
             BOTS = 1
@@ -48,6 +45,7 @@ class BotonNroBots(arcade.gui.UIFlatButton):
 
 
 class MenuView(arcade.View):
+    """ Vista del menu principal """
 
     def __init__(self):
         super().__init__()
@@ -70,7 +68,7 @@ class MenuView(arcade.View):
                          arcade.color.WHITE, font_size=15, anchor_x="center")
 
     def setup(self):
-        """ Set up this view. """
+
         self.ui_manager.purge_ui_elements()
 
         button = BotonNroBots(
@@ -115,42 +113,46 @@ class MenuView(arcade.View):
 
 
 class GameView(arcade.View):
-    """ Manage the 'game' view for our program. """
+    """ Vista de la pantalla del juego """
 
     def __init__(self):
         super().__init__()
 
-        # Variables that will hold sprite lists
+        # Variables que contendran listas de sprites
         self.player_list = None
         self.bot_list = []
 
         self.ui_manager = UIManager()
 
-        # Set up the player info
+        # Variables con informacion de los jugadores
         self.player_sprite = None
         self.bot_sprite = None
         self.cartas_jugador = None
         self.player_score = None
+        self.cartas_bots = []
 
-        # Create variables here
+        # Variables miscelaneas
         self.game_state = None
         self.ganador = ""
         self.deck = None
-        self.cartas_bots = []
 
     def on_hide_view(self):
         self.ui_manager.unregister_handlers()
 
     def setup(self):
-        """ This should set up your game and get it ready to play """
-        # Replace 'pass' with the code to set up your game
+        """ Configuracion inicial para dejar listo el juego """
 
         self.deck = DeckClass()
         self.deck.shuffle()
         self.ui_manager.purge_ui_elements()
+
         """Los estados van a ser:
-        0 - """
-        self.game_state = {"descripcion": "Seleccione desde 0 hasta 5 cartas y cambielas o retirese de la ronda","estado":1}
+        0 - Mesa cerrada
+        1 - Mesa abierta
+        """
+        self.game_state = {"descripcion": "Seleccione desde 0 hasta 5 cartas y cambielas o retirese de la ronda",
+                           "estado": 1}
+
         # Jugador
 
         self.player_list = arcade.SpriteList()
@@ -159,8 +161,8 @@ class GameView(arcade.View):
 
         for i in range(5):
             self.player_sprite = arcade.Sprite('./resources/deck/%s.png' % self.cartas_jugador[i].name, 1)
-            self.player_sprite.center_x = ANCHO/24 + i * 80
-            self.player_sprite.center_y = ALTO/9
+            self.player_sprite.center_x = ANCHO / 24 + i * 80
+            self.player_sprite.center_y = ALTO / 9
             self.player_list.append(self.player_sprite)
 
         # Botones
@@ -197,13 +199,14 @@ class GameView(arcade.View):
         BotonJuego.register_event_type('repartir')
 
         # Bots
+
         for i in range(BOTS):
             self.bot_list.append(arcade.SpriteList())
             self.cartas_bots.append(self.deck.draw_cards(5))
             for j in range(5):
                 self.bot_sprite = arcade.Sprite('./resources/card_back.png', 1)
-                self.bot_sprite.center_x = ANCHO/24 + j * 10 + i * 200
-                self.bot_sprite.center_y = ALTO/1.125
+                self.bot_sprite.center_x = ANCHO / 24 + j * 10 + i * 200
+                self.bot_sprite.center_y = ALTO / 1.125
                 self.bot_list[i].append(self.bot_sprite)
 
         @boton_cambio.event()
@@ -226,7 +229,7 @@ class GameView(arcade.View):
                 for i in range(5):
                     self.player_list[i].texture = arcade.load_texture(
                         "./resources/deck/%s.png" % self.cartas_jugador[i].name)
-                    self.player_list[i].center_y = ALTO/9
+                    self.player_list[i].center_y = ALTO / 9
 
                 self.player_list.update()
                 entrar()
@@ -234,8 +237,10 @@ class GameView(arcade.View):
         def entrar():
 
             if self.game_state.get("estado") == 1:
+
                 cartas_en_juego = self.cartas_bots + [self.cartas_jugador]
                 resultado = poker(cartas_en_juego)
+
                 if resultado.get("ganador") == len(cartas_en_juego):
                     self.ganador = "Gano el jugador con " + resultado.get("jugada")
                     self.player_score += 2
@@ -245,9 +250,11 @@ class GameView(arcade.View):
 
                     # MOSTRAR CARTAS GANADORAS
                     for i in range(5):
-                        self.bot_list[resultado.get("ganador")-1][i].texture = arcade.load_texture("./resources/deck/%s.png" % self.cartas_bots[resultado.get("ganador")-1][i].name)
-                        self.bot_list[resultado.get("ganador") - 1][i].center_x = ANCHO/2.8 + i * 80
-                        self.bot_list[resultado.get("ganador") - 1][i].center_y = ALTO/2
+                        self.bot_list[resultado.get("ganador") - 1][i].texture = arcade.load_texture(
+                            "./resources/deck/%s.png" % self.cartas_bots[resultado.get("ganador") - 1][i].name)
+                        self.bot_list[resultado.get("ganador") - 1][i].center_x = ANCHO / 2.8 + i * 80
+                        self.bot_list[resultado.get("ganador") - 1][i].center_y = ALTO / 2
+
                     self.bot_list[resultado.get("ganador") - 1].update()
 
                 self.game_state["descripcion"] = "Presione repartir para continuar"
@@ -260,11 +267,13 @@ class GameView(arcade.View):
             if self.game_state.get("estado") == 1:
                 self.player_score -= 1
                 resultado = poker(self.cartas_bots)
+
                 for i in range(5):
                     self.bot_list[resultado.get("ganador") - 1][i].texture = arcade.load_texture(
                         "./resources/deck/%s.png" % self.cartas_bots[resultado.get("ganador") - 1][i].name)
                     self.bot_list[resultado.get("ganador") - 1][i].center_x = ANCHO / 2.8 + i * 80
                     self.bot_list[resultado.get("ganador") - 1][i].center_y = ALTO / 2
+
                 self.bot_list[resultado.get("ganador") - 1].update()
                 self.ganador = "Gano el bot " + str(resultado.get("ganador")) + " con " + resultado.get("jugada")
                 self.game_state["descripcion"] = "Presione repartir para continuar"
@@ -281,20 +290,24 @@ class GameView(arcade.View):
                 self.deck = DeckClass()
                 self.deck.shuffle()
                 self.cartas_jugador = self.deck.draw_cards(5)
+
                 for i in range(5):
                     self.player_list[i].texture = arcade.load_texture(
                         "./resources/deck/%s.png" % self.cartas_jugador[i].name)
-                    self.player_list[i].center_y = ALTO/9
+                    self.player_list[i].center_y = ALTO / 9
 
                 self.player_list.update()
 
                 self.cartas_bots = []
+
                 for i in range(BOTS):
                     self.cartas_bots.append(self.deck.draw_cards(5))
+
                     for j in range(5):
                         self.bot_list[i][j].texture = arcade.load_texture("./resources/card_back.png")
-                        self.bot_list[i][j].center_x = ANCHO/24 + j * 10 + i * 200
-                        self.bot_list[i][j].center_y = ALTO/1.125
+                        self.bot_list[i][j].center_x = ANCHO / 24 + j * 10 + i * 200
+                        self.bot_list[i][j].center_y = ALTO / 1.125
+
                     self.bot_list[i].update()
 
     def check_score(self):
@@ -306,23 +319,23 @@ class GameView(arcade.View):
             self.window.show_view(game_over_view)
 
     def on_show(self):
-        """ Called when switching to this view"""
         arcade.set_background_color(arcade.color.AMAZON)
 
     def on_draw(self):
-        """ Draw everything for the game. """
+        """ Dibujar en pantalla lo necesario para el juego """
         arcade.start_render()
         arcade.draw_text(str(self.game_state.get("descripcion")), ANCHO / 2.5, ALTO / 9,
                          arcade.color.BLACK, font_size=15, anchor_x="left")
         arcade.draw_text(self.ganador, ANCHO / 2, ALTO / 3,
                          arcade.color.BLACK, font_size=20, anchor_x="center")
         self.player_list.draw()
-        arcade.draw_text('Puntos: ' + str(self.player_score), ANCHO/60, ALTO/30, arcade.color.WHITE, 14)
+        arcade.draw_text('Puntos: ' + str(self.player_score), ANCHO / 60, ALTO / 30, arcade.color.WHITE, 14)
         for i in range(BOTS):
             self.bot_list[i].draw()
-            arcade.draw_text("Bot {}".format(i+1), ANCHO/60 + i * 200, ALTO/1.232, arcade.color.WHITE, 14)
+            arcade.draw_text("Bot {}".format(i + 1), ANCHO / 60 + i * 200, ALTO / 1.232, arcade.color.WHITE, 14)
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
+        """ Metodo para seleccionar las cartas al hacer click izquierdo"""
 
         if button == arcade.MOUSE_BUTTON_LEFT and self.game_state.get("estado") == 1:
             if y in range(self.min_y(self.player_list[0].get_adjusted_hit_box()),
@@ -379,6 +392,8 @@ class GameView(arcade.View):
 
     @staticmethod
     def min_x(puntos):
+        """ Las hitboxes automaticas no son perfectas, pueden tener mas de 4 puntos
+            por eso se necesitan estos metodos """
         minx = puntos[0][0]
         for punto in puntos:
             if minx > punto[0]:
@@ -415,18 +430,16 @@ class GameView(arcade.View):
 
 
 class GameOverView(arcade.View):
-    """ Class to manage the game over view """
+    """ Vista de la pantalla del juego terminado """
 
     def __init__(self, victoria: bool):
         super(GameOverView, self).__init__()
         self.victoria = victoria
 
     def on_show(self):
-        """ Called when switching to this view"""
         arcade.set_background_color(arcade.color.BLACK)
 
     def on_draw(self):
-        """ Draw the game over view """
         arcade.start_render()
         if self.victoria:
             arcade.draw_text("Ha ganado la partida", ANCHO / 2, ALTO / 2,
@@ -438,7 +451,7 @@ class GameOverView(arcade.View):
                          arcade.color.WHITE, 20, anchor_x="center")
 
     def on_key_press(self, key, _modifiers):
-        """ If user hits escape, go back to the main menu view """
+        """ Si el jugador presiona escape, vuelve a la pantalla principal """
         if key == arcade.key.ESCAPE:
             menu_view = MenuView()
             self.window.show_view(menu_view)

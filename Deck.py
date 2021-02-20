@@ -15,7 +15,7 @@ class DeckClass:
     def __str__(self):
 
         return str([item for item in self.cards])
-        #return str(self.cards)
+        # return str(self.cards)
 
     def shuffle(self):
         random.shuffle(self.cards)
@@ -27,6 +27,3 @@ class DeckClass:
     def put(self, cards):
         for card in cards:
             self.cards.insert(0, card)
-
-
-
